@@ -1,3 +1,5 @@
+// @ts-check
+
 import { getInput, setFailed, setOutput } from '@actions/core'
 import { exec as _exec } from '@actions/exec'
 import { getOctokit, context } from '@actions/github'
@@ -14,9 +16,8 @@ async function run() {
     const fetch = getInput('fetch')
     const matchTag = getInput('match-tag')
     const matchCommit = getInput('match-commit')
-    const octokit = new getOctokit(myToken)
+    const octokit = getOctokit(myToken)
     const { owner, repo } = context.repo
-    const regexp = /^[.A-Za-z0-9_/-]*$/
 
     if (!headRef) {
       headRef = context.sha
@@ -45,7 +46,7 @@ async function run() {
           isMatch(release.tag_name, matchTag)
         )
         if (latestRelease) {
-          baseRef = latestRelease.data.tag_name
+          baseRef = latestRelease.tag_name
         } else {
           setFailed(
             `There are no releases on ${owner}/${repo} with match tag ${matchTag}. Tags are not releases.`
@@ -57,12 +58,7 @@ async function run() {
     console.log(`head-ref: ${headRef}`)
     console.log(`base-ref: ${baseRef}`)
 
-    if (
-      !!headRef &&
-      !!baseRef &&
-      regexp.test(headRef) &&
-      regexp.test(baseRef)
-    ) {
+    if (!!headRef && !!baseRef) {
       getChangelog(
         headRef,
         baseRef,
